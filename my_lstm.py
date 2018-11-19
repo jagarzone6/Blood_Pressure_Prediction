@@ -20,7 +20,7 @@ import sys
 from tensorflow.examples.tutorials.mnist import input_data
 # mnist = input_data.read_data_sets("tmp/data/recurrent_network", one_hot=True)
 # raw_data = reader.bp_raw_data_batch('dataset/makeup')
-raw_data = reader.bp_raw_data_batch('/home/zhangkaihao/software/workspace/lxh')
+raw_data = reader.bp_raw_data_batch('DATA')
 train_data, train_data_len, test_data, test_data_len = raw_data
 #pdb.set_trace()
 '''
@@ -77,19 +77,22 @@ def RNN(x, weights):
     x = tf.transpose(x, [1, 0, 2])
     # Reshaping to (n_steps*batch_size, n_input)
     x = tf.reshape(x, [-1, n_input])
+    print x
     # Split to get a list of 'n_steps' tensors of shape (batch_size, n_input)
-    x = tf.split(0, n_steps, x)
-
+    x = tf.expand_dims(x, 1) # [2, 1]
+    print x
+    x = tf.tile(x, [1,18, 1])
+    print x
+    x = tf.split(x, n_steps, 0)
+    print x
     # Define a lstm cell with tensorflow
-    lstm_cell = rnn_cell.BasicLSTMCell(n_hidden, forget_bias=1.0)
-
+    lstm_cell = rnn_cell.LSTMCell(n_hidden, forget_bias=1.0)
     # Define a multi layers lstm cell: multi_lstm_cell
     lstm_cell = rnn_cell.MultiRNNCell([lstm_cell] * 2)
-
     #pdb.set_trace()
     # Get lstm cell output
     # https://github.com/tensorflow/tensorflow/blob/r0.8/tensorflow/python/ops/rnn.py
-    outputs, states = rnn.rnn(lstm_cell, x, dtype=tf.float32)
+    outputs, states = rnn.dynamic_rnn(lstm_cell, x[0], dtype=tf.float32)
     #sequence_length参数暂时不会用，可以先不用。只不过计算速度可能会稍微慢一些。 sequence_length.shape=batch_size*n_hidden
     # outputs, states = rnn.rnn(lstm_cell, x, sequence_length=w, dtype=tf.float32)
 

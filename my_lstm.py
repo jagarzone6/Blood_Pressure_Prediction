@@ -20,9 +20,10 @@ import sys
 from tensorflow.examples.tutorials.mnist import input_data
 # mnist = input_data.read_data_sets("tmp/data/recurrent_network", one_hot=True)
 # raw_data = reader.bp_raw_data_batch('dataset/makeup')
-raw_data = reader.bp_raw_data_batch('/home/zhangkaihao/software/workspace/lxh')
+raw_data = reader.bp_raw_data_batch('DATA')
 train_data, train_data_len, test_data, test_data_len = raw_data
 #pdb.set_trace()
+logs_path = "./logs/visualize_graph"
 '''
 To classify images using a reccurent neural network, we consider every image
 row as a sequence of pixels. Because MNIST image shape is 28*28px, we will then
@@ -32,7 +33,7 @@ handle 28 sequences of 28 steps for every sample.
 # learning_rate = 0.001
 learning_rate = tf.Variable(0.001, trainable=False)
 training_iters = 200
-batch_size = 125
+batch_size = 5
 display_step = 10
 
 # Network Parameters
@@ -41,7 +42,7 @@ n_profile = 4 # user profile input
 n_steps = 18 # timesteps
 n_hidden = 100 # hidden layer num of features
 n_reluhidden = 100 # hidden layer num of relu nn
-
+saver = tf.train.Saver()
 # tf Graph input
 # 输入数据
 x = tf.placeholder("float", [batch_size, n_steps, n_input])
@@ -184,6 +185,7 @@ def run_epoch_test(session, data, datelen, learning_rate_variable, eval_op, verb
 gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
 with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess, tf.device('/gpu:0'):
     sess.run(init)
+    train_writer = tf.summary.FileWriter(logs_path, sess.graph)
     step = 0
     mae_pre = sys.float_info.max
     poscnt = 0 # Positive count
@@ -220,6 +222,7 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess, tf.devi
         step += 1
         print "   MAE:", "{:.13f}".format(mae_result), "  TEST RMSE:", "{:.13f}".format(rmse_pred_result), "Learning Rate:", learning_rate_variable, "Training Iters:", step
     print "Optimization Finished!"
+    saver.save(sess, logs_path+'/my_test_model',global_step=step)
 
     # Calculate accuracy for 128 mnist test images
     '''
